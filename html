@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Гибридная логистика — экономика проекта</title>
+<style>
+  :root {
+    --asphalt: #16222b;
+    --asphalt-2: #22333f;
+    --ink: #1c2228;
+    --muted: #5b6770;
+    --line: #dfe3e6;
+    --bg: #fbfaf7;
+    --card: #ffffff;
+    --orange: #c7440a;
+    --orange-bright: #e8590c;
+    --amber: #f0a32a;
+    --road: #c9ced2;
+    --accent-soft: #fdf0e7;
+    --up: #1a7f4b;
+    --down: #b3382c;
+    --c-fuel: #e8590c;
+    --c-time: #f0a32a;
+    --c-freight: #ffd166;
+    --c-rent: #2f5597;
+    --c-serv: #4a7dc4;
+    --c-adv: #9aa7b5;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink);
+         font: 16px/1.6 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  main { max-width: 900px; margin: 0 auto; padding: 0 1.25rem 3rem; }
+  header.hero { background: var(--asphalt); color: #fff; margin: 0 -1.25rem 0;
+                padding: 2.4rem 1.25rem 1.8rem; }
+  .hero-inner { max-width: 900px; margin: 0 auto; }
+  .kicker { color: var(--amber); font-size: .8rem; letter-spacing: .14em; text-transform: uppercase; margin: 0 0 .5rem; }
+  header h1 { font-size: 1.8rem; line-height: 1.2; margin: 0 0 .5rem; font-weight: 700; }
+  .meta { color: #b9c4cc; font-size: .875rem; margin: 0; }
+  .route { margin-top: 1.4rem; }
+  .route svg { display: block; width: 100%; height: 22px; }
+  .tldr { background: var(--accent-soft); border-left: 4px solid var(--orange-bright);
+          padding: .9rem 1.1rem; border-radius: 0 6px 6px 0; margin: 1.6rem 0; }
+  .tldr b { color: var(--orange); }
+  .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+          gap: .75rem; margin: 1.6rem 0; }
+  .kpi { background: var(--card); border: 1px solid var(--line); border-radius: 8px;
+         padding: .8rem 1rem; }
+  .kpi b { display: block; font-size: 1.45rem; font-variant-numeric: tabular-nums; color: var(--ink); }
+  .kpi span { color: var(--muted); font-size: .8rem; }
+  .kpi .sub { color: var(--orange); font-size: .72rem; font-weight: 600; }
+  section { margin: 2.2rem 0; }
+  h2 { font-size: 1.15rem; margin: 0 0 .35rem; }
+  .lead { color: var(--muted); font-size: .92rem; margin: 0 0 .9rem; }
+  h2 .num { color: var(--orange-bright); font-family: ui-monospace, monospace; font-size: .95em; }
+  table { border-collapse: collapse; width: 100%; font-size: .92rem; background: var(--card); }
+  th, td { padding: .5rem .6rem; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+  th { color: var(--muted); font-weight: 600; font-size: .85rem; }
+  td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+  tr.total td { font-weight: 700; border-top: 2px solid var(--asphalt-2); }
+  .wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 8px; }
+  .fig { margin: 1.1rem 0 .4rem; }
+  .fig-title { font-size: .88rem; color: var(--muted); margin: 0 0 .35rem; }
+  td.bar div { background: var(--orange-bright); height: .66em; border-radius: 2px; min-width: 2px; }
+  td.bar { min-width: 120px; }
+  .bar-loss div { background: var(--road); }
+  .bar-gain div { background: var(--orange-bright); }
+  .smalls { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1rem; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 1rem 1.1rem; }
+  .card h3 { margin: 0 0 .2rem; font-size: 1rem; }
+  .card .st { color: var(--muted); font-size: .8rem; margin: 0 0 .6rem; }
+  .card .big { font-size: 1.5rem; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--asphalt); }
+  .card .big small { font-size: .8rem; color: var(--muted); font-weight: 400; }
+  svg.chart { width: 100%; height: auto; display: block; }
+  .tick { font-size: 10px; fill: var(--muted); }
+  .tick-year { font-size: 9.5px; fill: var(--muted); }
+  .lbl { font-size: 9px; fill: var(--muted); font-family: ui-monospace, monospace; }
+  .lbl-last { font-size: 10px; fill: var(--orange); font-weight: 700; font-family: ui-monospace, monospace; }
+  .legend { display: flex; flex-wrap: wrap; gap: .5rem 1.2rem; font-size: .8rem; color: var(--muted); margin-top: .6rem; }
+  .legend i { display: inline-block; width: .8em; height: .8em; border-radius: 2px; margin-right: .35em; vertical-align: -0.05em; }
+  .stack { background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: .9rem 1.1rem; margin: .6rem 0; }
+  .stack .row-lbl { font-size: .85rem; color: var(--muted); margin-bottom: .3rem; }
+  .stbar { display: flex; height: 30px; border-radius: 4px; overflow: hidden; border: 1px solid var(--line); }
+  .stbar div { display: flex; align-items: center; justify-content: center; color: #fff; font-size: .68rem; font-weight: 700; min-width: 0; }
+
+  .note { font-size: .8rem; color: var(--muted); font-style: italic; margin-top: .5rem; }
+  .flag { display: inline-block; background: var(--accent-soft); color: var(--orange); border: 1px solid #f3c9a8;
+          border-radius: 4px; padding: .05rem .45rem; font-size: .78rem; font-weight: 600; }
+  .duo { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  .vbox { border: 1px solid var(--line); border-radius: 8px; padding: 1rem; }
+  .vbox h3 { margin: 0 0 .5rem; font-size: .95rem; }
+  .vbox ul { margin: 0; padding-left: 1.15rem; font-size: .9rem; }
+  .vbox li { margin: .3rem 0; }
+  .vbox .sum { font-size: 1.35rem; font-weight: 700; font-variant-numeric: tabular-nums; margin-top: .7rem; color: var(--asphalt); }
+
+  footer { color: var(--muted); font-size: .8rem; border-top: 1px solid var(--line);
+           margin-top: 3rem; padding-top: .9rem; }
+  footer b { color: var(--ink); }
+
+  @media (max-width: 640px) {
+    header h1 { font-size: 1.45rem; }
+    .duo { grid-template-columns: 1fr; }
+  }
+  @media print {
+    header.hero { margin: 0; border-radius: 0; }
+    body { background: #fff; }
+    .card, .vbox, table, .stack { break-inside: avoid; }
+    main { max-width: none; padding: 0; }
+  }
+</style>
+</head>
+<body>
+<header class="hero">
+  <div class="hero-inner">
+    <p class="kicker">Проект №1 · Экономическая модель</p>
+    <h1>Гибридная логистика — экономика проекта</h1>
+    <p class="meta">Финансовые и социальные результаты за 3, 5 и 10 лет · пилот (5 узлов) → регион (20 узлов) → страна (200 узлов)</p>
+    <p class="meta">Сесюнин Вячеслав Максимович · ПКТС, 1 курс · данные: 2026 · сформировано 19.09.2026</p>
+    <div class="route" aria-hidden="true">
+      <svg viewBox="0 0 900 22" preserveAspectRatio="none">
+        <line x1="0" y1="11" x2="900" y2="11" stroke="#4a5a66" stroke-width="2" stroke-dasharray="14 8"/>
+        <circle cx="0"   cy="11" r="4.5" fill="#e8590c"/>
+        <circle cx="225" cy="11" r="4.5" fill="#f0a32a"/>
+        <circle cx="450" cy="11" r="4.5" fill="#f0a32a"/>
+        <circle cx="675" cy="11" r="4.5" fill="#f0a32a"/>
+        <circle cx="900" cy="11" r="4.5" fill="#e8590c"/>
+      </svg>
+    </div>
+  </div>
+</header>
+<main>
+  <div class="tldr">
+    <b>Главное.</b> Проект окупается примерно за 20 месяцев: инвестиции в пилот
+    (5,75 млн ₽) возвращаются за счёт чистого годового эффекта 3,5 млн ₽.
+    За 10 лет накопленный эффект составляет 29,25 млн ₽ — пилот, 117 млн ₽ —
+    регион и 1,17 млрд ₽ — страна. Если проект не внедрять, те же 10 лет
+    «унесут» 143 млн / 572 млн / 5,72 млрд ₽ потерь безвозвратно.
+    Разница «внедрить или нет» — до +1,17 млрд ₽.
+  </div>
+  <div class="kpis">
+    <div class="kpi"><b>≈20 мес.</b><span>Окупаемость проекта</span><span class="sub">пилот / регион / страна</span></div>
+    <div class="kpi"><b>29,25 млн ₽</b><span>Эффект пилота за 10 лет</span></div>
+    <div class="kpi"><b>117 млн ₽</b><span>Эффект региона за 10 лет</span></div>
+    <div class="kpi"><b>1,17 млрд ₽</b><span>Эффект страны за 10 лет</span></div>
+    <div class="kpi"><b>0,61× / 2,04×</b><span>Возврат на 1 ₽ затрат</span><span class="sub">1-й год / 5 лет</span></div>
+    <div class="kpi"><b>+1,17 млрд ₽</b><span>Разница «внедрить / не внедрить», страна</span></div>
+  </div>
+  <section>
+    <h2><span class="num">01</span> Исходные данные</h2>
+    <p class="lead">Масштаб сети и годовая экономика трёх уровней. Годовой эффект — это экономия (топливо, время, потери грузов) плюс заработок (попутные грузы) за вычетом расходов на обслуживание сети (OPEX).</p>
+    <div class="wrap">
+      <table>
+        <thead><tr><th>Уровень</th><th class="num">Узлы</th><th class="num">Фуры</th><th class="num">Годовой эффект, млн ₽</th><th class="num">CAPEX, млн ₽</th><th class="num">Окупаемость</th><th class="num">Эффект за 5 лет, млн ₽</th></tr></thead>
+        <tbody>
+          <tr><td>Пилот (Мотовилихинский район)</td><td class="num">5</td><td class="num">10</td><td class="num">3,5</td><td class="num">5,75</td><td class="num">≈20 мес.</td><td class="num">11,75</td></tr>
+          <tr><td>Регион (Пермский край)</td><td class="num">20</td><td class="num">100</td><td class="num">14,0</td><td class="num">23,0</td><td class="num">≈20 мес.</td><td class="num">47,0</td></tr>
+          <tr><td>Страна (Россия)</td><td class="num">200</td><td class="num">1 000</td><td class="num">140</td><td class="num">230</td><td class="num">≈20 мес.</td><td class="num">470</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="note">Окупаемость = CAPEX ÷ (годовой эффект/12): 5,75/(3,5/12) = 19,7 ≈ 20 мес.; в пессимистичном сценарии (эффект 2,9 млн ₽/год) — ≈24 мес. Эффект за 5 лет: 3,5×5 − 5,75 = 11,75 млн ₽. Модель соответствует главе 3 пояснительной записки. <span class="flag">согласовано</span></p>
+    <div class="fig"><p class="fig-title">Структура годового эффекта по уровням (млн ₽/год, за вычетом OPEX)</p></div>
+    <div class="wrap">
+      <table>
+        <thead><tr><th>Статья</th><th class="num">Пилот</th><th class="num">Регион</th><th class="num">Страна</th></tr></thead>
+        <tbody>
+          <tr><td>Экономия топлива и износа</td><td class="num">1,6</td><td class="num">6,4</td><td class="num">64</td></tr>
+          <tr><td>Сокращение простоев водителей</td><td class="num">0,7</td><td class="num">2,8</td><td class="num">28</td></tr>
+          <tr><td>Снижение потерь грузов</td><td class="num">0,6</td><td class="num">2,4</td><td class="num">24</td></tr>
+          <tr><td>Доход от попутных грузов</td><td class="num">0,6</td><td class="num">2,4</td><td class="num">24</td></tr>
+          <tr class="total"><td>Итого (за вычетом OPEX)</td><td class="num">3,5</td><td class="num">14,0</td><td class="num">140</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="stack">
+      <div class="row-lbl">Пилот — 3,5 млн ₽/год: почти половина эффекта — экономия топлива, остальное — время водителей, потери грузов и попутные рейсы.</div>
+      <div class="stbar" role="img" aria-label="Структура эффекта пилота: топливо 46%, время 20%, потери грузов 17%, попутные грузы 17%">
+        <div style="width:45.7%;background:var(--c-fuel)">46%</div>
+        <div style="width:20%;background:var(--c-time)">20%</div>
+        <div style="width:17.15%;background:var(--c-freight)"></div>
+        <div style="width:17.15%;background:var(--c-rent)"></div>
+      </div>
+      <div class="legend">
+        <span><i style="background:var(--c-fuel)"></i>Топливо и износ — 1,6 млн (45,7%)</span>
+        <span><i style="background:var(--c-time)"></i>Время водителей — 0,7 млн (20,0%)</span>
+        <span><i style="background:var(--c-freight)"></i>Потери грузов — 0,6 млн (17,1%)</span>
+        <span><i style="background:var(--c-rent)"></i>Попутные грузы — 0,6 млн (17,1%)</span>
+      </div>
+    </div>
+    <div class="stack">
+      <div class="row-lbl">Регион и страна — структура та же (масштаб ×4 и ×40): экономия топлива остаётся главной статьёй эффекта.</div>
+      <div class="stbar" role="img" aria-label="Структура эффекта региона и страны: топливо 46%, время 20%, потери грузов 17%, попутные грузы 17%">
+        <div style="width:45.7%;background:var(--c-fuel)">46%</div>
+        <div style="width:20%;background:var(--c-time)">20%</div>
+        <div style="width:17.15%;background:var(--c-freight)"></div>
+        <div style="width:17.15%;background:var(--c-rent)"></div>
+      </div>
+      <div class="legend">
+        <span><i style="background:var(--c-fuel)"></i>Топливо и износ — 6,4 / 64 млн (45,7%)</span>
+        <span><i style="background:var(--c-time)"></i>Время водителей — 2,8 / 28 млн (20,0%)</span>
+        <span><i style="background:var(--c-freight)"></i>Потери грузов — 2,4 / 24 млн (17,1%)</span>
+        <span><i style="background:var(--c-rent)"></i>Попутные грузы — 2,4 / 24 млн (17,1%)</span>
+      </div>
+    </div>
+  </section>
+  <section>
+    <h2><span class="num">02</span> Накопленный эффект по годам — «маршрут» окупаемости</h2>
+    <p class="lead">Первый год уходит на возврат инвестиций (пилот: −2,25 млн ₽), окупаемость наступает на втором году работы (~20 мес.). Дальше накопленный эффект растёт линейно: каждый год добавляет полный годовой эффект. 10 точек — 10 лет работы сети.</p>
+    <div class="smalls">
+      <div class="card">
+        <h3>Пилот — 5 узлов, 10 фур</h3>
+        <p class="st">Млн ₽ накопленного эффекта · эффект 3,5 млн ₽/год</p>
+        <svg class="chart" viewBox="0 0 640 210" role="img" aria-label="Накопленный эффект пилота по годам: от −2,25 до 29,25 млн рублей за 10 лет">
+          <line x1="40" y1="186" x2="620" y2="186" stroke="var(--line)" stroke-width="1.5"/>
+          <line x1="40" y1="172" x2="620" y2="172" stroke="var(--muted)" stroke-width="1" stroke-dasharray="4 4" opacity="0.5"/>
+          <polyline points="40,182 104,166 169,149 233,133 298,116 362,100 427,83 491,67 556,50 620,34" fill="none" stroke="var(--orange-bright)" stroke-width="3"/>
+          <circle cx="40" cy="182" r="3.5" fill="var(--orange-bright)"/><text x="40" y="176" text-anchor="middle" class="lbl">−2,3</text>
+          <circle cx="104" cy="166" r="3.5" fill="var(--orange-bright)"/><text x="104" y="157" text-anchor="middle" class="lbl">1,3</text>
+          <circle cx="169" cy="149" r="3.5" fill="var(--orange-bright)"/><text x="169" y="140" text-anchor="middle" class="lbl">4,8</text>
+          <circle cx="233" cy="133" r="3.5" fill="var(--orange-bright)"/><text x="233" y="124" text-anchor="middle" class="lbl">8,3</text>
+          <circle cx="298" cy="116" r="3.5" fill="var(--orange-bright)"/><text x="298" y="107" text-anchor="middle" class="lbl">11,8</text>
+          <circle cx="362" cy="100" r="3.5" fill="var(--orange-bright)"/><text x="362" y="91" text-anchor="middle" class="lbl">15,3</text>
+          <circle cx="427" cy="83" r="3.5" fill="var(--orange-bright)"/><text x="427" y="74" text-anchor="middle" class="lbl">18,8</text>
+          <circle cx="491" cy="67" r="3.5" fill="var(--orange-bright)"/><text x="491" y="58" text-anchor="middle" class="lbl">22,3</text>
+          <circle cx="556" cy="50" r="3.5" fill="var(--orange-bright)"/><text x="556" y="41" text-anchor="middle" class="lbl">25,8</text>
+          <circle cx="620" cy="34" r="4.5" fill="var(--orange-bright)"/><text x="620" y="25" text-anchor="middle" class="lbl-last">29,25 млн</text>
+          <text x="40" y="200" text-anchor="middle" class="tick-year">1</text><text x="104" y="200" text-anchor="middle" class="tick-year">2</text>
+          <text x="169" y="200" text-anchor="middle" class="tick-year">3</text><text x="233" y="200" text-anchor="middle" class="tick-year">4</text>
+          <text x="298" y="200" text-anchor="middle" class="tick-year">5</text><text x="362" y="200" text-anchor="middle" class="tick-year">6</text>
+          <text x="427" y="200" text-anchor="middle" class="tick-year">7</text><text x="491" y="200" text-anchor="middle" class="tick-year">8</text>
+          <text x="556" y="200" text-anchor="middle" class="tick-year">9</text><text x="620" y="200" text-anchor="middle" class="tick-year">10</text>
+        </svg>
+      </div>
+      <div class="card">
+        <h3>Регион — 20 узлов, 100 фур</h3>
+        <p class="st">Млн ₽ накопленного эффекта · эффект 14 млн ₽/год</p>
+        <svg class="chart" viewBox="0 0 640 210" role="img" aria-label="Накопленный эффект региона по годам: от −9 до 117 млн рублей за 10 лет">
+          <line x1="40" y1="186" x2="620" y2="186" stroke="var(--line)" stroke-width="1.5"/>
+          <line x1="40" y1="172" x2="620" y2="172" stroke="var(--muted)" stroke-width="1" stroke-dasharray="4 4" opacity="0.5"/>
+          <polyline points="40,182 104,166 169,149 233,133 298,116 362,100 427,83 491,67 556,50 620,34" fill="none" stroke="var(--orange-bright)" stroke-width="3"/>
+          <circle cx="40" cy="182" r="3.5" fill="var(--orange-bright)"/><text x="40" y="176" text-anchor="middle" class="lbl">−9</text>
+          <circle cx="104" cy="166" r="3.5" fill="var(--orange-bright)"/><text x="104" y="157" text-anchor="middle" class="lbl">5</text>
+          <circle cx="169" cy="149" r="3.5" fill="var(--orange-bright)"/><text x="169" y="140" text-anchor="middle" class="lbl">19</text>
+          <circle cx="233" cy="133" r="3.5" fill="var(--orange-bright)"/><text x="233" y="124" text-anchor="middle" class="lbl">33</text>
+          <circle cx="298" cy="116" r="3.5" fill="var(--orange-bright)"/><text x="298" y="107" text-anchor="middle" class="lbl">47</text>
+          <circle cx="362" cy="100" r="3.5" fill="var(--orange-bright)"/><text x="362" y="91" text-anchor="middle" class="lbl">61</text>
+          <circle cx="427" cy="83" r="3.5" fill="var(--orange-bright)"/><text x="427" y="74" text-anchor="middle" class="lbl">75</text>
+          <circle cx="491" cy="67" r="3.5" fill="var(--orange-bright)"/><text x="491" y="58" text-anchor="middle" class="lbl">89</text>
+          <circle cx="556" cy="50" r="3.5" fill="var(--orange-bright)"/><text x="556" y="41" text-anchor="middle" class="lbl">103</text>
+          <circle cx="620" cy="34" r="4.5" fill="var(--orange-bright)"/><text x="620" y="25" text-anchor="middle" class="lbl-last">117 млн</text>
+          <text x="40" y="200" text-anchor="middle" class="tick-year">1</text><text x="104" y="200" text-anchor="middle" class="tick-year">2</text>
+          <text x="169" y="200" text-anchor="middle" class="tick-year">3</text><text x="233" y="200" text-anchor="middle" class="tick-year">4</text>
+          <text x="298" y="200" text-anchor="middle" class="tick-year">5</text><text x="362" y="200" text-anchor="middle" class="tick-year">6</text>
+          <text x="427" y="200" text-anchor="middle" class="tick-year">7</text><text x="491" y="200" text-anchor="middle" class="tick-year">8</text>
+          <text x="556" y="200" text-anchor="middle" class="tick-year">9</text><text x="620" y="200" text-anchor="middle" class="tick-year">10</text>
+        </svg>
+      </div>
+      <div class="card">
+        <h3>Страна — 200 узлов, 1 000 фур</h3>
+        <p class="st">Млн ₽ накопленного эффекта · эффект 140 млн ₽/год</p>
+        <svg class="chart" viewBox="0 0 640 210" role="img" aria-label="Накопленный эффект страны по годам: от −90 до 1 170 млн рублей за 10 лет">
+          <line x1="40" y1="186" x2="620" y2="186" stroke="var(--line)" stroke-width="1.5"/>
+          <line x1="40" y1="172" x2="620" y2="172" stroke="var(--muted)" stroke-width="1" stroke-dasharray="4 4" opacity="0.5"/>
+          <polyline points="40,182 104,166 169,149 233,133 298,116 362,100 427,83 491,67 556,50 620,34" fill="none" stroke="var(--orange-bright)" stroke-width="3"/>
+          <circle cx="40" cy="182" r="3.5" fill="var(--orange-bright)"/><text x="40" y="176" text-anchor="middle" class="lbl">−90</text>
+          <circle cx="104" cy="166" r="3.5" fill="var(--orange-bright)"/><text x="104" y="157" text-anchor="middle" class="lbl">50</text>
+          <circle cx="169" cy="149" r="3.5" fill="var(--orange-bright)"/><text x="169" y="140" text-anchor="middle" class="lbl">190</text>
+          <circle cx="233" cy="133" r="3.5" fill="var(--orange-bright)"/><text x="233" y="124" text-anchor="middle" class="lbl">330</text>
+          <circle cx="298" cy="116" r="3.5" fill="var(--orange-bright)"/><text x="298" y="107" text-anchor="middle" class="lbl">470</text>
+          <circle cx="362" cy="100" r="3.5" fill="var(--orange-bright)"/><text x="362" y="91" text-anchor="middle" class="lbl">610</text>
+          <circle cx="427" cy="83" r="3.5" fill="var(--orange-bright)"/><text x="427" y="74" text-anchor="middle" class="lbl">750</text>
+          <circle cx="491" cy="67" r="3.5" fill="var(--orange-bright)"/><text x="491" y="58" text-anchor="middle" class="lbl">890</text>
+          <circle cx="556" cy="50" r="3.5" fill="var(--orange-bright)"/><text x="556" y="41" text-anchor="middle" class="lbl">1 030</text>
+          <circle cx="620" cy="34" r="4.5" fill="var(--orange-bright)"/><text x="620" y="25" text-anchor="middle" class="lbl-last">1 170 млн</text>
+          <text x="40" y="200" text-anchor="middle" class="tick-year">1</text><text x="104" y="200" text-anchor="middle" class="tick-year">2</text>
+          <text x="169" y="200" text-anchor="middle" class="tick-year">3</text><text x="233" y="200" text-anchor="middle" class="tick-year">4</text>
+          <text x="298" y="200" text-anchor="middle" class="tick-year">5</text><text x="362" y="200" text-anchor="middle" class="tick-year">6</text>
+          <text x="427" y="200" text-anchor="middle" class="tick-year">7</text><text x="491" y="200" text-anchor="middle" class="tick-year">8</text>
+          <text x="556" y="200" text-anchor="middle" class="tick-year">9</text><text x="620" y="200" text-anchor="middle" class="tick-year">10</text>
+        </svg>
+      </div>
+    </div>
+    <div class="fig"><p class="fig-title">Накопленный эффект по контрольным периодам (млн ₽)</p></div>
+    <div class="wrap">
+      <table>
+        <thead><tr><th>Период</th><th class="num">Пилот</th><th class="num">Регион</th><th class="num">Страна</th></tr></thead>
+        <tbody>
+          <tr><td>1 год</td><td class="num">−2,25</td><td class="num">−9,0</td><td class="num">−90</td></tr>
+          <tr><td>3 года</td><td class="num">4,75</td><td class="num">19,0</td><td class="num">190</td></tr>
+          <tr><td>5 лет</td><td class="num">11,75</td><td class="num">47,0</td><td class="num">470</td></tr>
+          <tr class="total"><td>10 лет</td><td class="num">29,25</td><td class="num">117,0</td><td class="num">1 170</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="note">Проверка арифметики: −2,25 + 3,5×9 = 29,25 · −9 + 14×9 = 117 · −90 + 140×9 = 1 170 — все итоги сходятся.</p>
+    <div class="fig"><p class="fig-title">Окупаемость пилотного участка по годам (млн ₽)</p></div>
+    <div class="wrap">
+      <table>
+        <thead><tr><th>Показатель</th><th class="num">Год 0</th><th class="num">Год 1</th><th class="num">Год 2</th><th class="num">Год 3</th><th class="num">Год 4</th><th class="num">Год 5</th><th class="num">Год 10</th></tr></thead>
+        <tbody>
+          <tr><td>Чистый эффект за год</td><td class="num">—</td><td class="num">3,50</td><td class="num">3,50</td><td class="num">3,50</td><td class="num">3,50</td><td class="num">3,50</td><td class="num">3,50</td></tr>
+          <tr><td>Накопленный эффект (3,5×N − 5,75)</td><td class="num">−5,75</td><td class="num">−2,25</td><td class="num">+1,25</td><td class="num">+4,75</td><td class="num">+8,25</td><td class="num">+11,75</td><td class="num">+29,25</td></tr>
+          <tr class="total"><td>Статус</td><td class="num">инвестиция</td><td class="num">возврат</td><td class="num">окупился</td><td class="num">рост</td><td class="num">рост</td><td class="num">рост</td><td class="num">рост</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="note">Срок окупаемости капитальных вложений (CAPEX 5,75 млн ₽): 5,75 / (3,5 / 12) ≈ 19,7 ≈ 20 месяцев с момента запуска пилота — наступает на втором году работы. В пессимистичном сценарии (эффект 2,9 млн ₽/год) окупаемость ≈ 24 месяца. Далее сеть наращивает накопленный эффект на 3,5 млн ₽ ежегодно.</p>
+  </section>
+  <section>
+    <h2><span class="num">03</span> Сравнение с традиционной логистикой</h2>
+    <p class="lead">Без проекта ежегодно теряются 14,3 / 57,2 / 572 млн ₽ — на простоях, холостых пробегах и недозагрузке. Сеть ВГЛ устраняет примерно четверть этих потерь: годовой эффект 3,5 / 14 / 140 млн ₽. Полосы показывают затраты за 10 лет в обоих сценариях.</p>
+    <div class="wrap">
+      <table>
+        <thead><tr><th>Уровень</th><th>Затраты без проекта за 10 лет, млн ₽</th><th></th><th>Затраты с проектом за 10 лет, млн ₽</th><th></th><th class="num">Разница, млн ₽</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>Пилот</td>
+            <td class="num">143,0</td>
+            <td class="bar bar-loss"><div style="width:100%"></div></td>
+            <td class="num">113,75</td>
+            <td class="bar bar-gain"><div style="width:79.5%"></div></td>
+            <td class="num">+29,25</td>
+          </tr>
+          <tr>
+            <td>Регион</td>
+            <td class="num">572,0</td>
+            <td class="bar bar-loss"><div style="width:100%"></div></td>
+            <td class="num">455,0</td>
+            <td class="bar bar-gain"><div style="width:79.5%"></div></td>
+            <td class="num">+117,0</td>
+          </tr>
+          <tr>
+            <td>Страна</td>
+            <td class="num">5 720</td>
+            <td class="bar bar-loss"><div style="width:100%"></div></td>
+            <td class="num">4 550</td>
+            <td class="bar bar-gain"><div style="width:79.5%"></div></td>
+            <td class="num">+1 170</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="note">Шкала полос — внутри уровня. Затраты с проектом = потери − эффект×10 + CAPEX: пилот 143 − 35 + 5,75 = 113,75. Каждый год промедления — это потерянные 3,5 / 14 / 140 млн ₽ эффекта.</p>
+    <div class="duo">
+      <div class="vbox">
+        <h3>Если ничего не делать</h3>
+        <ul>
+          <li>Пилот: <b>143 млн ₽</b> потерь за 10 лет</li>
+          <li>Регион: <b>572 млн ₽</b> потерь за 10 лет</li>
+          <li>Страна: <b>5,72 млрд ₽</b> потерь за 10 лет</li>
+        </ul>
+      </div>
+      <div class="vbox">
+        <h3>Если внедрить проект</h3>
+        <ul>
+          <li>Пилот: <b>+29,25 млн ₽</b> эффекта за 10 лет</li>
+          <li>Регион: <b>+117 млн ₽</b> эффекта за 10 лет</li>
+          <li>Страна: <b>+1,17 млрд ₽</b> эффекта за 10 лет</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+  <section>
+    <h2><span class="num">04</span> Социальная выгода — не только в деньгах</h2>
+    <p class="lead">Кроме прямого эффекта проекта появляются выгоды для жителей и территорий: они не попадают в финансовый расчёт, но снижают нагрузку на бюджет.</p>
+    <div class="wrap">
+      <table>
+        <thead><tr><th>Эффект</th><th>Что даёт</th><th>Оценка</th></tr></thead>
+        <tbody>
+          <tr><td>Снижение цен на товары</td><td>Логистика дешевле → продукты дешевле</td><td>−5…10% к ценам</td></tr>
+          <tr><td>Развитие сёл</td><td>Доступ к рынкам → рост доходов фермеров</td><td>рост доходов</td></tr>
+          <tr><td>Новые рабочие места</td><td>Локальная занятость на узлах сети</td><td>80–150 мест на регион</td></tr>
+          <tr><td>Снижение миграции</td><td>Люди остаются, потому что есть работа</td><td>снижение оттока</td></tr>
+          <tr><td>Устойчивость региона</td><td>Не зависит от одного хаба</td><td>диверсификация</td></tr>
+          <tr><td>Экология</td><td>Меньше выбросов CO₂</td><td>−20…30%</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="smalls" style="margin-top:1rem">
+      <div class="card"><span class="st">Экономия семей на продуктах</span><div class="big">5–10 тыс. ₽<small> в год на семью</small></div></div>
+      <div class="card"><span class="st">Рост налогов от новых предприятий</span><div class="big">50–100 млн ₽<small> в год</small></div></div>
+      <div class="card"><span class="st">Снижение выплат по безработице</span><div class="big">20–30 млн ₽<small> в год</small></div></div>
+      <div class="card"><span class="st">Снижение потерь грузов в сети</span><div class="big">−25%<small> за счёт контроля и маршрутизации</small></div></div>
+    </div>
+  </section>
+  <section>
+    <h2><span class="num">05</span> Риски и их влияние на выгоду</h2>
+    <p class="lead">Даже при наступлении рисков проект остаётся выгодным: базовая окупаемость ≈20 месяцев, в пессимистичном сценарии (эффект 2,9 млн ₽/год) — ≈24 месяца.</p>
+    <div class="wrap">
+      <table>
+        <thead><tr><th>Риск</th><th>Влияние на выгоду</th><th>Минимизация</th></tr></thead>
+        <tbody>
+          <tr><td>Сезонность дорог</td><td>Снижение эффекта на 10% (окупаемость ≈22 мес.)</td><td>Зимние / летние маршруты</td></tr>
+          <tr><td>Сложность синхронизации</td><td>Задержки, потери</td><td>Простая диспетчерская</td></tr>
+          <tr><td>Отказ техники</td><td>Простои</td><td>Резервные машины</td></tr>
+          <tr><td>Человеческий фактор</td><td>Ошибки</td><td>Обучение, премии</td></tr>
+          <tr><td>Отсутствие сертификации</td><td>Штрафы</td><td>Пилот без сертификации</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+  <section>
+    <h2><span class="num">06</span> Вывод</h2>
+    <p class="lead">Проект выходит на чистый плюс на втором году работы и дальше растёт за счёт эффекта масштаба: больше узлов — дешевле перевозка, больше грузов — выше доход от попутных рейсов, больше клиентов — выше доход от услуг.</p>
+    <div class="wrap">
+      <table>
+        <thead><tr><th>Показатель</th><th class="num">Пилот</th><th class="num">Регион</th><th class="num">Страна</th></tr></thead>
+        <tbody>
+          <tr><td>Окупаемость</td><td class="num">≈20 мес.</td><td class="num">≈20 мес.</td><td class="num">≈20 мес.</td></tr>
+          <tr><td>Возврат на 1 ₽ затрат (1-й год / 5 лет)</td><td class="num">0,61× / 2,04×</td><td class="num">0,61× / 2,04×</td><td class="num">0,61× / 2,04×</td></tr>
+          <tr><td>Эффект за 10 лет</td><td class="num">29,25 млн ₽</td><td class="num">117 млн ₽</td><td class="num">1 170 млн ₽</td></tr>
+          <tr class="total"><td>Разница с «ничего не делать» за 10 лет</td><td class="num">+29,25 млн ₽</td><td class="num">+117 млн ₽</td><td class="num">+1 170 млн ₽</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="stack">
+      <div class="row-lbl">Прогноз на 20 лет (пилот): при эффекте 3,5 млн ₽/год накопленный эффект составит 3,5×20 − 5,75 = <b>64,25 млн ₽</b>.</div>
+      <div class="kpis" style="margin:0">
+        <div class="kpi"><b>64,25 млн ₽</b><span>Накопленный эффект за 20 лет</span></div>
+        <div class="kpi"><b>3,5 млн ₽</b><span>Чистый эффект в год</span></div>
+        <div class="kpi"><b>≈20 мес.</b><span>Окупаемость</span></div>
+      </div>
+      <p class="note">Модель соответствует главе 3 пояснительной записки: CAPEX 5,75 млн ₽, OPEX 0,575 млн ₽/год, чистый эффект 3,5 млн ₽/год (базовый сценарий, загрузка обратных рейсов 80%). <span class="flag">согласовано</span></p>
+    </div>
+  </section>
+  <footer>
+    <b>Методология.</b> Все суммы в млн ₽; чистый годовой эффект принят постоянным (базовый сценарий 3,5 млн ₽/год при загрузке обратных рейсов 80%, пессимистичный 2,9); CAPEX учтён в году 0; OPEX 0,575 млн ₽/год уже вычтен из эффекта; дисконтирование не применялось (методика автора). Окупаемость = CAPEX / (эффект/12).
+    <br><b>Источник.</b> Сесюнин В.М., «Практическая выгода от проекта «Гибридная логистика»: финансовые и социальные результаты за 3, 5 и 10 лет», ПКТС, 2026 (15 стр.). Арифметика проверена в листе «Проверки» Excel-модели.
+    <br>Сформировано 19.09.2026 · версия 2.0 (модель согласована с пояснительной запиской)
+  </footer>
+</main>
+</body>
+</html>
